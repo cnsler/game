@@ -33,7 +33,7 @@ public class PlayerController {
                                       @RequestParam(value = "maxExperience", required = false) Integer maxExperience,
                                       @RequestParam(value = "minLevel", required = false) Integer minLevel,
                                       @RequestParam(value = "maxLevel", required = false) Integer maxLevel,
-                                      @RequestParam(value = "order", required = false, defaultValue = "id") PlayerOrder order,
+                                      @RequestParam(value = "order", required = false, defaultValue = "ID") PlayerOrder order,
                                       @RequestParam(value = "pageNumber", required = false, defaultValue = "0") Integer pageNumber,
                                       @RequestParam(value = "pageSize", required = false, defaultValue = "3") Integer pageSize) {
 
@@ -88,7 +88,7 @@ public class PlayerController {
                                              @RequestParam(value = "maxExperience", required = false) Integer maxExperience,
                                              @RequestParam(value = "minLevel", required = false) Integer minLevel,
                                              @RequestParam(value = "maxLevel", required = false) Integer maxLevel,
-                                             @RequestParam(value = "order", required = false, defaultValue = "id") PlayerOrder order,
+                                             @RequestParam(value = "order", required = false, defaultValue = "ID") PlayerOrder order,
                                              @RequestParam(value = "pageNumber", required = false, defaultValue = "0") Integer pageNumber,
                                              @RequestParam(value = "pageSize", required = false, defaultValue = "3") Integer pageSize) {
 
