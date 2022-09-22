@@ -27,15 +27,15 @@ public class PlayerController {
                                       @RequestParam(value = "race", required = false) Race race,
                                       @RequestParam(value = "profession", required = false) Profession profession,
                                       @RequestParam(value = "after", required = false) Long after,
-                                   @RequestParam(value = "before", required = false) Long before,
-                                   @RequestParam(value = "banned", required = false) Boolean banned,
-                                   @RequestParam(value = "minExperience", required = false) Integer minExperience,
-                                   @RequestParam(value = "maxExperience", required = false) Integer maxExperience,
-                                   @RequestParam(value = "minLevel", required = false) Integer minLevel,
-                                   @RequestParam(value = "maxLevel", required = false) Integer maxLevel,
-                                   @RequestParam(value = "order", required = false, defaultValue = "id") PlayerOrder order,
-                                   @RequestParam(value = "pageNumber", required = false, defaultValue = "0") Integer pageNumber,
-                                   @RequestParam(value = "pageSize", required = false, defaultValue = "3") Integer pageSize) {
+                                      @RequestParam(value = "before", required = false) Long before,
+                                      @RequestParam(value = "banned", required = false) Boolean banned,
+                                      @RequestParam(value = "minExperience", required = false) Integer minExperience,
+                                      @RequestParam(value = "maxExperience", required = false) Integer maxExperience,
+                                      @RequestParam(value = "minLevel", required = false) Integer minLevel,
+                                      @RequestParam(value = "maxLevel", required = false) Integer maxLevel,
+                                      @RequestParam(value = "order", required = false, defaultValue = "id") PlayerOrder order,
+                                      @RequestParam(value = "pageNumber", required = false, defaultValue = "0") Integer pageNumber,
+                                      @RequestParam(value = "pageSize", required = false, defaultValue = "3") Integer pageSize) {
 
         Long count;
         if (name == null && title == null && race == null && profession == null
@@ -122,12 +122,14 @@ public class PlayerController {
 
         int count = 0;
         if (player.getName() != null) {
-            if (!player.getName().isEmpty() && player.getName().length() < 12) updatedPlayer.setName(player.getName());
-            else return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            if (!player.getName().isEmpty() && player.getName().length() < 12) {
+                updatedPlayer.setName(player.getName());
+            } else return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } else count++;
         if (player.getTitle() != null) {
-            if (!player.getTitle().isEmpty() && player.getTitle().length() <= 30) updatedPlayer.setTitle(player.getTitle());
-            else return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            if (!player.getTitle().isEmpty() && player.getTitle().length() <= 30) {
+                updatedPlayer.setTitle(player.getTitle());
+            } else return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } else count++;
         if (player.getRace() != null) {
             updatedPlayer.setRace(player.getRace());
@@ -136,19 +138,23 @@ public class PlayerController {
             updatedPlayer.setProfession(player.getProfession());
         } else count++;
         if (player.getBirthday() != null) {
-            if (player.getBirthday().getYear() >= (2000 - 1900) && player.getBirthday().getYear() <= (3000 - 1900)) updatedPlayer.setBirthday(player.getBirthday());
-            else return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            if (player.getBirthday().getYear() >= (2000 - 1900) && player.getBirthday().getYear() <= (3000 - 1900)) {
+                updatedPlayer.setBirthday(player.getBirthday());
+            } else return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } else count++;
         if (player.isBanned() != null) {
             updatedPlayer.setBanned(player.isBanned());
         } else count ++;
         if (player.getExperience() != null) {
-            if (player.getExperience() >= 0 && player.getExperience() <= 10_000_000) updatedPlayer.setExperience(player.getExperience());
-            else return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            if (player.getExperience() >= 0 && player.getExperience() <= 10_000_000) {
+                updatedPlayer.setExperience(player.getExperience());
+            } else return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } else count++;
         if (count == 7) return new ResponseEntity<>(updatedPlayer, HttpStatus.OK);
 
-        updatedPlayer = new Player(updatedPlayer.getName(), updatedPlayer.getTitle(), updatedPlayer.getRace(), updatedPlayer.getProfession(), updatedPlayer.getExperience(), updatedPlayer.getBirthday(), updatedPlayer.isBanned());
+        updatedPlayer = new Player(
+                updatedPlayer.getName(), updatedPlayer.getTitle(), updatedPlayer.getRace(), updatedPlayer.getProfession(),
+                updatedPlayer.getExperience(), updatedPlayer.getBirthday(), updatedPlayer.isBanned());
         playerService.updatePlayer(id, updatedPlayer);
 
         return new ResponseEntity<>(updatedPlayer, HttpStatus.OK);
