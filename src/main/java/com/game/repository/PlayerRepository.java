@@ -15,8 +15,6 @@ import java.sql.Date;
 @Repository
 public interface PlayerRepository extends JpaRepository<Player, Long> {
 
-    Player findPlayerById(Long id);
-
     @Query("SELECT p FROM Player p where" +
             "(:name is null or :name='' or lower(p.name) like lower(concat('%', :name, '%'))) and" +
             "(:title is null or :title='' or lower(p.title) like lower(concat('%', :title, '%'))) and" +
