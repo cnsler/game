@@ -4,41 +4,41 @@ import javax.persistence.*;
 import java.sql.Date;
 
 @Entity
-@Table(name = "player")
+@Table
 public class Player {
 
     @Id
-    @Column(name = "id")
+    @Column
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name")
+    @Column
     private String name;
 
-    @Column(name = "title")
+    @Column
     private String title;
 
-    @Column(name = "race")
+    @Column
     @Enumerated(EnumType.STRING)
     private Race race;
 
-    @Column(name = "profession")
+    @Column
     @Enumerated(EnumType.STRING)
     private Profession profession;
 
-    @Column(name = "birthday")
+    @Column
     private Date birthday;
 
-    @Column(name = "banned")
+    @Column
     private Boolean banned;
 
-    @Column(name = "experience")
+    @Column
     private Integer experience;
 
-    @Column(name = "level")
+    @Column
     private Integer level;
 
-    @Column(name = "untilNextLevel")
+    @Column
     private Integer untilNextLevel;
 
     public Player() {
@@ -132,8 +132,8 @@ public class Player {
     public String toString() {
         return "Player{" +
                 "id=" + id +
-                ", name='" + name + '\'' +
-                ", title='" + title + '\'' +
+                ", name=" + name +
+                ", title=" + title +
                 ", race=" + race +
                 ", profession=" + profession +
                 ", birthday=" + birthday +

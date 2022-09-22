@@ -23,55 +23,60 @@ public class PlayerService {
         this.playerRepository = playerRepository;
     }
 
-    public List<Player> findAllWithFilter(String name, String title, Race race, Profession profession, Long after, Long before, Boolean banned, Integer minExperience, Integer maxExperience, Integer minLevel, Integer maxLevel, Integer pageNumber, Integer pageSize, PlayerOrder order) {
+    public List<Player> findPlayersByParams(String name, String title, Race race, Profession profession,
+                                            Long after, Long before, Boolean banned,
+                                            Integer minExperience, Integer maxExperience,
+                                            Integer minLevel, Integer maxLevel,
+                                            Integer pageNumber, Integer pageSize, PlayerOrder order) {
         Date afterDate = null;
         Date beforeDate = null;
         if (after != null) afterDate = new Date(after);
         if (before != null) beforeDate = new Date(before);
-        Integer pageNumberDefault = 0;
-        Integer pageSizeDefault = 3;
-        if (pageNumber != null) pageNumberDefault = pageNumber;
-        if (pageSize != null) pageSizeDefault = pageSize;
 
-        if (order == null) return playerRepository.findPlayersByParams(name, title, race, profession, afterDate, beforeDate, banned, minExperience, maxExperience, minLevel, maxLevel, PageRequest.of(pageNumberDefault, pageSizeDefault, Sort.by("id"))).getContent();
-        return playerRepository.findPlayersByParams(name, title, race, profession, afterDate, beforeDate, banned, minExperience, maxExperience, minLevel, maxLevel, PageRequest.of(pageNumberDefault, pageSizeDefault, Sort.by(order.getFieldName()))).getContent();
+        return playerRepository.findPlayersByParams(
+                name, title, race, profession,
+                afterDate, beforeDate, banned,
+                minExperience, maxExperience, minLevel, maxLevel,
+                PageRequest.of(pageNumber, pageSize, Sort.by(order.getFieldName()))).getContent();
     }
 
-    public Player getById(Long id) {
-        Player player = playerRepository.findPlayerById(id);
-        return player;
+    public Player getPlayerOrNullById(Long id) {
+        return playerRepository.findById(id).orElse(null);
     }
 
 
-    public void deleteById(Long id) {
+    public void deletePlayerById(Long id) {
         playerRepository.deleteById(id);
     }
 
-    public Player addPlayer(Player player) {
-        Player savedPlayer = playerRepository.saveAndFlush(player);
-        return savedPlayer;
+    public void addPlayer(Player player) {
+        playerRepository.saveAndFlush(player);
     }
 
-    public Player update(Long id, Player player) {
+    public void updatePlayer(Long id, Player player) {
         player.setId(id);
-        return playerRepository.saveAndFlush(player);
+        playerRepository.saveAndFlush(player);
     }
 
-    public Long countPlayersByParams(String name, String title, Race race, Profession profession, Long after, Long before, Boolean banned, Integer minExperience, Integer maxExperience, Integer minLevel, Integer maxLevel/*, Integer pageNumber, Integer pageSize*/) {
+    public Long getCountPlayersByParams(String name, String title, Race race, Profession profession,
+                                        Long after, Long before, Boolean banned,
+                                        Integer minExperience, Integer maxExperience,
+                                        Integer minLevel, Integer maxLevel,
+                                        Integer pageNumber, Integer pageSize, PlayerOrder order) {
         Date afterDate = null;
         Date beforeDate = null;
         if (after != null) afterDate = new Date(after);
         if (before != null) beforeDate = new Date(before);
-        /*Integer pageNumberDefault = 0;
-        Integer pageSizeDefault = 3;
-        if (pageNumber != null) pageNumberDefault = pageNumber;
-        if (pageSize != null) pageSizeDefault = pageSize;*/
-        Long result = playerRepository.findPlayersByParams(name, title, race, profession, afterDate, beforeDate, banned, minExperience, maxExperience, minLevel, maxLevel, PageRequest.of(0, 3, Sort.by("id"))).getTotalElements();
-        return result;
+
+        return playerRepository.findPlayersByParams(
+                name, title, race, profession,
+                afterDate, beforeDate, banned,
+                minExperience, maxExperience,
+                minLevel, maxLevel,
+                PageRequest.of(pageNumber, pageSize, Sort.by(order.getFieldName()))).getTotalElements();
     }
 
-    public Long count() {
-        Long result = playerRepository.count();
-        return result;
+    public Long getCountAllPlayers() {
+        return playerRepository.count();
     }
 }
