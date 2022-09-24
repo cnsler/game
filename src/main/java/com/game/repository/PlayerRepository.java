@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Date;
+import java.util.Date;
 
 @Repository
 public interface PlayerRepository extends JpaRepository<Player, Long> {

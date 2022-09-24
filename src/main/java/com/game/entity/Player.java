@@ -1,131 +1,110 @@
 package com.game.entity;
 
 import javax.persistence.*;
-import java.sql.Date;
+import java.util.Date;
 
 @Entity
 @Table
 public class Player {
 
     @Id
-    @Column
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @Column
     private String name;
-
     @Column
     private String title;
-
     @Column
     @Enumerated(EnumType.STRING)
     private Race race;
-
     @Column
     @Enumerated(EnumType.STRING)
     private Profession profession;
-
     @Column
     private Date birthday;
-
     @Column
     private Boolean banned;
-
     @Column
     private Integer experience;
-
     @Column
     private Integer level;
-
     @Column
     private Integer untilNextLevel;
 
     public Player() {
     }
 
-    public Player(String name, String title, Race race, Profession profession, Integer experience, Date birthday, Boolean banned) {
-        this.name = name;
-        this.title = title;
-        this.race = race;
-        this.profession = profession;
-        this.birthday = birthday;
-        this.banned = banned;
-        this.experience = experience;
-        this.level = levelCalculate();
-        this.untilNextLevel = untilNextLevelCalculate();
+    private void levelCalculate() {
+        level = (int) (Math.sqrt(2500 + 200 * experience) - 50) / 100;
     }
 
-    public Long getId() {
-        return id;
+    private void untilNextLevelCalculate() {
+        untilNextLevel = 50 * (level + 1) * (level + 2) - experience;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public boolean isEmpty() {
+        return name == null
+                && title == null
+                && race == null
+                && profession == null
+                && birthday == null
+                && banned == null
+                && experience == null;
     }
 
-    public String getName() {
-        return name;
+    private boolean isFull() {
+        return name != null
+                && title != null
+                && race != null
+                && profession != null
+                && birthday != null
+                && banned != null
+                && experience != null;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    private boolean isValidName() {
+        return name == null || (!name.isEmpty() && name.length() <= 12);
     }
 
-    public String getTitle() {
-        return title;
+    private boolean isValidTitle() {
+        return title == null || (!title.isEmpty() && title.length() <= 30);
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    private boolean isValidBirthday() {
+        return birthday == null || (birthday.getYear() >= (2000 - 1900) && birthday.getYear() <= (3000 - 1900));
     }
 
-    public Race getRace() {
-        return race;
+    private boolean isValidExperience() {
+        return experience == null || (experience >= 0 && experience <= 10_000_000);
     }
 
-    public void setRace(Race race) {
-        this.race = race;
+    public boolean isValid() {
+        return isFull()
+                && isValidName()
+                && isValidTitle()
+                && isValidBirthday()
+                && isValidExperience();
     }
 
-    public Profession getProfession() {
-        return profession;
+    public boolean isValidFields() {
+        return isValidName() && isValidTitle() && isValidBirthday() && isValidExperience();
     }
 
-    public void setProfession(Profession profession) {
-        this.profession = profession;
+    public Player fill() {
+        levelCalculate();
+        untilNextLevelCalculate();
+        return this;
     }
 
-    public Date getBirthday() {
-        return birthday;
-    }
-
-    public void setBirthday(Date birthday) {
-        this.birthday = birthday;
-    }
-
-    public Boolean isBanned() {
-        return banned;
-    }
-
-    public void setBanned(Boolean banned) {
-        this.banned = banned;
-    }
-
-    public Integer getExperience() {
-        return experience;
-    }
-
-    public void setExperience(Integer experience) {
-        this.experience = experience;
-    }
-
-    private Integer levelCalculate() {
-        return (int) (Math.sqrt(2500 + 200 * experience) - 50) / 100;
-    }
-
-    private Integer untilNextLevelCalculate() {
-        return 50 * (level + 1) * (level + 2) - experience;
+    public Player update(Player player) {
+        if (player.name != null) name = player.name;
+        if (player.title != null) title = player.title;
+        if (player.race != null) race = player.race;
+        if (player.profession != null) profession = player.profession;
+        if (player.birthday != null) birthday = player.birthday;
+        if (player.banned != null) banned = player.banned;
+        if (player.experience != null) experience = player.experience;
+        return this.fill();
     }
 
     @Override

@@ -10,7 +10,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.sql.Date;
+import javax.persistence.EntityNotFoundException;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -28,34 +29,38 @@ public class PlayerService {
                                             Integer minExperience, Integer maxExperience,
                                             Integer minLevel, Integer maxLevel,
                                             Integer pageNumber, Integer pageSize, PlayerOrder order) {
-        Date afterDate = null;
-        Date beforeDate = null;
-        if (after != null) afterDate = new Date(after);
-        if (before != null) beforeDate = new Date(before);
-
         return playerRepository.findPlayersByParams(
                 name, title, race, profession,
-                afterDate, beforeDate, banned,
+                getDateOrNull(after), getDateOrNull(before), banned,
                 minExperience, maxExperience, minLevel, maxLevel,
                 PageRequest.of(pageNumber, pageSize, Sort.by(order.getFieldName()))).getContent();
     }
 
-    public Player getPlayerOrNullById(Long id) {
-        return playerRepository.findById(id).orElse(null);
+    public Player getPlayerById(Long id) {
+        if (id < 1) throw new IllegalArgumentException();
+        Player playerById = playerRepository.findById(id).orElse(null);
+        if (playerById == null) throw new EntityNotFoundException();
+        return playerById;
     }
 
 
     public void deletePlayerById(Long id) {
-        playerRepository.deleteById(id);
+        playerRepository.delete(getPlayerById(id));
     }
 
-    public void addPlayer(Player player) {
-        playerRepository.saveAndFlush(player);
+    public Player createPlayer(Player player) {
+        if (player.isEmpty() || !player.isValid()) throw new IllegalArgumentException();
+
+        return playerRepository.saveAndFlush(player.fill());
     }
 
-    public void updatePlayer(Long id, Player player) {
-        player.setId(id);
-        playerRepository.saveAndFlush(player);
+    public Player updatePlayer(Long id, Player player) {
+        Player playerById = getPlayerById(id);
+
+        if (player.isEmpty()) return playerById;
+
+        if (player.isValidFields()) return playerRepository.saveAndFlush(playerById.update(player));
+        else throw new IllegalArgumentException();
     }
 
     public Long getCountPlayersByParams(String name, String title, Race race, Profession profession,
@@ -63,14 +68,9 @@ public class PlayerService {
                                         Integer minExperience, Integer maxExperience,
                                         Integer minLevel, Integer maxLevel,
                                         Integer pageNumber, Integer pageSize, PlayerOrder order) {
-        Date afterDate = null;
-        Date beforeDate = null;
-        if (after != null) afterDate = new Date(after);
-        if (before != null) beforeDate = new Date(before);
-
         return playerRepository.findPlayersByParams(
                 name, title, race, profession,
-                afterDate, beforeDate, banned,
+                getDateOrNull(after), getDateOrNull(before), banned,
                 minExperience, maxExperience,
                 minLevel, maxLevel,
                 PageRequest.of(pageNumber, pageSize, Sort.by(order.getFieldName()))).getTotalElements();
@@ -78,5 +78,9 @@ public class PlayerService {
 
     public Long getCountAllPlayers() {
         return playerRepository.count();
+    }
+
+    private Date getDateOrNull(Long unixDate) {
+        return unixDate != null ? new Date(unixDate) : null;
     }
 }
