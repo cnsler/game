@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
 @RestController
@@ -33,47 +34,32 @@ public class PlayerController {
                                       @RequestParam(value = "maxExperience", required = false) Integer maxExperience,
                                       @RequestParam(value = "minLevel", required = false) Integer minLevel,
                                       @RequestParam(value = "maxLevel", required = false) Integer maxLevel,
-                                      @RequestParam(value = "order", required = false, defaultValue = "ID") PlayerOrder order,
                                       @RequestParam(value = "pageNumber", required = false, defaultValue = "0") Integer pageNumber,
-                                      @RequestParam(value = "pageSize", required = false, defaultValue = "3") Integer pageSize) {
+                                      @RequestParam(value = "pageSize", required = false, defaultValue = "3") Integer pageSize,
+                                      @RequestParam(value = "order", required = false, defaultValue = "ID") PlayerOrder order) {
 
         Long count;
-        if (name == null && title == null && race == null && profession == null
-                && after == null && before == null && banned == null
-                && minExperience == null && maxExperience == null && minLevel == null && maxLevel == null) {
-            count = playerService.getCountAllPlayers();
-        } else {
+        if (name != null || title != null || race != null || profession != null
+                || after != null || before != null || banned != null
+                || minExperience != null || maxExperience != null || minLevel != null || maxLevel != null) {
             count = playerService.getCountPlayersByParams(
                     name, title, race, profession,
                     after, before, banned,
                     minExperience, maxExperience, minLevel, maxLevel,
                     pageNumber, pageSize, order);
-        }
+        } else count = playerService.getCountAllPlayers();
+
         return new ResponseEntity<>(count, HttpStatus.OK);
     }
 
     @PostMapping(value = "/players")
     public ResponseEntity<Player> create(@RequestBody Player player) {
 
-        if (player.getName() == null || player.getName().isEmpty() || player.getName().length() > 12) {
+        try {
+            return new ResponseEntity<>(playerService.createPlayer(player), HttpStatus.OK);
+        } catch (IllegalArgumentException ignored) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        if (player.getTitle() == null || player.getTitle().isEmpty() || player.getTitle().length() > 30) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        if (player.getExperience() == null || player.getExperience() < 0 || player.getExperience() > 10_000_000) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        if (player.getBirthday() == null || player.getBirthday().getYear() < (2000 - 1900)
-                || player.getBirthday().getYear() > (3000 - 1900)) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
-        Player createdPlayer = new Player(player.getName(), player.getTitle(), player.getRace(), player.getProfession(),
-                player.getExperience(), player.getBirthday(), player.isBanned());
-        playerService.addPlayer(createdPlayer);
-
-        return new ResponseEntity<>(createdPlayer, HttpStatus.OK);
     }
 
     @GetMapping("/players")
@@ -88,9 +74,9 @@ public class PlayerController {
                                              @RequestParam(value = "maxExperience", required = false) Integer maxExperience,
                                              @RequestParam(value = "minLevel", required = false) Integer minLevel,
                                              @RequestParam(value = "maxLevel", required = false) Integer maxLevel,
-                                             @RequestParam(value = "order", required = false, defaultValue = "ID") PlayerOrder order,
                                              @RequestParam(value = "pageNumber", required = false, defaultValue = "0") Integer pageNumber,
-                                             @RequestParam(value = "pageSize", required = false, defaultValue = "3") Integer pageSize) {
+                                             @RequestParam(value = "pageSize", required = false, defaultValue = "3") Integer pageSize,
+                                             @RequestParam(value = "order", required = false, defaultValue = "ID") PlayerOrder order) {
 
         final List<Player> players = playerService.findPlayersByParams(
                 name, title, race, profession,
@@ -103,72 +89,38 @@ public class PlayerController {
 
     @GetMapping(value = "/players/{id}")
     public ResponseEntity<Player> read(@PathVariable(name = "id") Long id) {
-        if (id < 1) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
-        final Player player = playerService.getPlayerOrNullById(id);
-
-        return player != null
-                ? new ResponseEntity<>(player, HttpStatus.OK)
-                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        try {
+            return new ResponseEntity<>(playerService.getPlayerById(id), HttpStatus.OK);
+        } catch (IllegalArgumentException ignored) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (EntityNotFoundException ignored) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @PostMapping(value = "/players/{id}")
     public ResponseEntity<Player> update(@PathVariable(name = "id") Long id, @RequestBody Player player) {
 
-        if (id < 1) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
-        Player updatedPlayer = playerService.getPlayerOrNullById(id);
-        if (updatedPlayer == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-
-        int count = 0;
-        if (player.getName() != null) {
-            if (!player.getName().isEmpty() && player.getName().length() < 12) {
-                updatedPlayer.setName(player.getName());
-            } else return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } else count++;
-        if (player.getTitle() != null) {
-            if (!player.getTitle().isEmpty() && player.getTitle().length() <= 30) {
-                updatedPlayer.setTitle(player.getTitle());
-            } else return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } else count++;
-        if (player.getRace() != null) {
-            updatedPlayer.setRace(player.getRace());
-        } else count++;
-        if (player.getProfession() != null) {
-            updatedPlayer.setProfession(player.getProfession());
-        } else count++;
-        if (player.getBirthday() != null) {
-            if (player.getBirthday().getYear() >= (2000 - 1900) && player.getBirthday().getYear() <= (3000 - 1900)) {
-                updatedPlayer.setBirthday(player.getBirthday());
-            } else return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } else count++;
-        if (player.isBanned() != null) {
-            updatedPlayer.setBanned(player.isBanned());
-        } else count ++;
-        if (player.getExperience() != null) {
-            if (player.getExperience() >= 0 && player.getExperience() <= 10_000_000) {
-                updatedPlayer.setExperience(player.getExperience());
-            } else return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } else count++;
-        if (count == 7) return new ResponseEntity<>(updatedPlayer, HttpStatus.OK);
-
-        updatedPlayer = new Player(
-                updatedPlayer.getName(), updatedPlayer.getTitle(), updatedPlayer.getRace(), updatedPlayer.getProfession(),
-                updatedPlayer.getExperience(), updatedPlayer.getBirthday(), updatedPlayer.isBanned());
-        playerService.updatePlayer(id, updatedPlayer);
-
-        return new ResponseEntity<>(updatedPlayer, HttpStatus.OK);
+        try {
+            return new ResponseEntity<>(playerService.updatePlayer(id, player), HttpStatus.OK);
+        } catch (IllegalArgumentException ignored) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (EntityNotFoundException ignored) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @DeleteMapping(value = "/players/{id}")
     public ResponseEntity<?> delete(@PathVariable(name = "id") Long id) {
 
-        if (id < 1) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
-        Player player = playerService.getPlayerOrNullById(id);
-        if (player == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        playerService.deletePlayerById(id);
-
-        return new ResponseEntity<>(HttpStatus.OK);
+        try {
+            playerService.deletePlayerById(id);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (EntityNotFoundException ignored) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (IllegalArgumentException ignored) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 }
